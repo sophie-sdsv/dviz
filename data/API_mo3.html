@@ -4,15 +4,15 @@
 <title>NYCMAP</title>
 <meta charset='utf-8' />
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-
 <link rel="icon" type="image/png" href="https://img.icons8.com/bubbles/50/000000/car.png">
+
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css" rel="stylesheet" />
 
 <script charset="utf-8" src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300&family=Noto+Sans+KR:wght@300&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" type="text/css" href="style.css">
 
@@ -23,9 +23,52 @@
     
     <div id="map"></div>
     
+    
+
+     <!-- Slideshow container -->
+    <div class="slideshow-container">
+
+      <!-- Full-width slides/quotes -->
+      <div class="mySlides">
+        <p>Trips in January mainly happen in lower Manhattan and the middle part of Brooklyn</p>
+      </div>
+
+      <div class="mySlides">
+        <p>8am: Almost all zones have outgoing trips, and from 7pm onwards: heavy traffic in lower Manhattan, maybe nightlife?</p>
+      </div>
+
+      <div class="mySlides">
+        <p>Outgoing trips shifted to happen in upper Manhattan and Brooklyn's residential areas in May</p>
+      </div>
+
+      <div class="mySlides">
+        <p>There is no 8am taxi rush anymore, the busiest hour shifted to 4pm, traffic and taxi demand significantly dropped due to COVID</p>
+      </div>
+
+
+      <!-- Next/prev buttons -->
+      <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+      <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    
+
+    <!-- Dots/bullets/indicators -->
+    <div class="dot-container">
+      <span class="dot" onclick="currentSlide(1)"></span>
+      <span class="dot" onclick="currentSlide(2)"></span>
+      <span class="dot" onclick="currentSlide(3)"></span>
+      <span class="dot" onclick="currentSlide(4)"></span>
+    </div> 
+    </div>
+
+    <!-- CONSOLEEE -->
     <div id="console">
-        <h2>NYC Taxi gg</h2>
+        <h2 style="font-size: 35px;">2020 FHV Trips in New York</h2>
          <p class="credit">Data: <a href="https://dev.socrata.com/foundry/data.cityofnewyork.us/yrt9-58g8  ">City of New York</a>.</p>
+
+         <button type="button" class="collapsible">  More Information</button>
+         <div class="extra_content">
+           <p>This dataset focses on high volumn for-hire vehicles (FHV) trips in New York City. Brands that provide more than 10,000 trips daily will be classified as FHV trips, this basically includes services provided by Uber, Lyft. <br><br> In this map, trips made on 2 dates are mapped, the slider provides filtering by hour of the day.</p>
+         </div>
 
          <div class="session">
            <h2>Outgoing Trips</h2>
@@ -41,8 +84,9 @@
          </div>
 
          <div class="session" id="sliderbar">
-           <h2 style="margin-top: 0.5em;">Hour: <label id="active-hour">12PM</label> </h2> 
-           <input id='slider' class='row' type='range' min='0' max='23' step='1' value='12' />
+           <h2 style="margin-top: 0.5em;">Hour: <label id="active-hour">12 PM</label> </h2> 
+           <input id='slider' name='slider' class='row' type='range' min='0' max='23' step='1' value='0' />
+           <button class="btn" id="go_button">Animate</button>
          </div>
 
          <div class='session'>
@@ -56,19 +100,26 @@
          </div>
 
     </div>   
+
+    
     
 
 
 <script>
-  
-  
+
+  var slider_hour = 0;
+  const start_btn = document.getElementById("go_button");
+  const slider = document.getElementById("slider")
+  var counter = 0;
+  var target = [-73.958, 40.6888];
+
 
 	mapboxgl.accessToken = 'pk.eyJ1IjoiaGlzdG9pcmV4c3IiLCJhIjoiY2tqdmltNmg2MDk5OTJ2cXVub2RwMHExZyJ9.9ZVPyPVZPg28WyGD_cl5QA';
 
         // Load a new map in the 'map' HTML div
         var map = new mapboxgl.Map({
             container: 'map', // container id
-            style: 'mapbox://styles/histoirexsr/cklsiujzl1imu17lqfnunfj4k', // Using the standard Mapbox Light style
+            style: 'mapbox://styles/histoirexsr/cklsiujzl1imu17lqfnunfj4k?optimize=true', // Using the standard Mapbox Light style
             center: [-73.99, 40.726], // starting position [lng, lat]
             zoom: 13, // starting zoom
             pitch: 60, 
@@ -76,12 +127,24 @@
 
         });
 
+
   //import data from api
   
   map.on('load', function() {  
             map.addControl(new mapboxgl.NavigationControl());
 
             map.rotateTo((8900 / 110), { duration: 8000 });
+            map.flyTo({
+              center: target,
+              zoom: 10,
+              bearing: 315,
+              pitch: 0,
+              speed: 0.2,
+              curve: 1,
+              easing: function(t){
+                return t;
+              },
+            });
 
             
 
@@ -161,7 +224,7 @@
 
             // marker layer for popup
             map.loadImage(
-            'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+            'icon.png',
             // Add an image to use as a custom marker
             function (error, image) {
             if (error) throw error;
@@ -185,7 +248,26 @@
               });
 
 
+            start_btn.addEventListener("click", function(){
+              setInterval(function(){
+                  slider.stepUp()
 
+                  slider_hour = parseInt(slider.value);
+                  filterHour = ['==', ['number', ['get', 'hour']], slider_hour];
+                  map.setFilter('taxi_OD', ['all', filterHour, filterDay]);
+
+                  // converting 0-23 hour to AMPM format
+                  var ampm = slider_hour >= 12 ? 'PM' : 'AM';
+                  var hour12 = slider_hour % 12 ? slider_hour % 12 : 12;
+
+                  // update text in the UI
+                  document.getElementById('active-hour').innerText = hour12 + " "+ ampm;
+
+              }, 200)
+    
+            });
+
+            
             document.getElementById('slider').addEventListener('input', function(e) {
 
             var hour = parseInt(e.target.value);
@@ -202,7 +284,8 @@
 
 
           });
-        
+          
+          
 
           document.getElementById('filters').addEventListener('change', function(e) {
             var day = e.target.value;
@@ -251,6 +334,54 @@
 
 });
    
+
+//scipt for extra info box
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    }
+  });
+}
+
+
+
+//slideshow script
+var slideIndex = 1;
+showSlides(slideIndex);
+
+function plusSlides(n) {
+  showSlides(slideIndex += n);
+}
+
+function currentSlide(n) {
+  showSlides(slideIndex = n);
+}
+
+function showSlides(n) {
+  var i;
+  var slides = document.getElementsByClassName("mySlides");
+  var dots = document.getElementsByClassName("dot");
+  if (n > slides.length) {slideIndex = 1}
+    if (n < 1) {slideIndex = slides.length}
+    for (i = 0; i < slides.length; i++) {
+      slides[i].style.display = "none";
+    }
+    for (i = 0; i < dots.length; i++) {
+      dots[i].className = dots[i].className.replace(" active", "");
+    }
+  slides[slideIndex-1].style.display = "block";
+  dots[slideIndex-1].className += " active";
+} 
+
+
     
 
 </script>
